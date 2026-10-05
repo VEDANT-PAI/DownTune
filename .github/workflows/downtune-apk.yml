@@ -1,0 +1,48 @@
+name: DownTune APK
+
+# Builds an installable debug-signed universal APK. Run it from the Actions tab ("Run workflow") or on push.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true # core, lyrics, IconPack, morideobfuscator are required to build
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Generate translation contributor credits
+        run: python scripts/generate_translation_contributors.py
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Create debug keystore
+        run: |
+          mkdir -p ~/.android
+          [ -f ~/.android/debug.keystore ] || keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 \
+            -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew --console=plain assembleGmsMobileUniversalDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DownTune-debug-apk
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
