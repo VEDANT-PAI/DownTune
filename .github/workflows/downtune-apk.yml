@@ -1,6 +1,5 @@
 name: DownTune APK
 
-# Builds an installable debug-signed universal APK. Run it from the Actions tab ("Run workflow") or on push.
 on:
   workflow_dispatch:
   push:
@@ -12,15 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: true # core, lyrics, IconPack, morideobfuscator are required to build
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: Generate translation contributor credits
-        run: python scripts/generate_translation_contributors.py
+          submodules: true
 
       - uses: actions/setup-java@v5
         with:
